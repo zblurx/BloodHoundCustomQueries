@@ -414,6 +414,16 @@
             ]
         },
         {
+            "name": "All Users with Password not Required",
+            "category": "Other",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p = (d:Domain)-[r:Contains*1..]->(u:User) WHERE u.passwordnotreqd = true RETURN p"
+                }
+            ]
+        },
+        {
             "name": "Find users that have not logged in within the last 90 days",
             "category": "Other",
             "queryList": [
@@ -675,6 +685,76 @@
               "final": true,
               "query": "MATCH (H:Computer)-[:HasSession]->(y) WHERE H.operatingsystem =~ '(?i).*(2019).*' RETURN H"
           }]
-      }
+      },
+      {
+        "name": "Set DCSync Principals as High Value Targets",
+        "category": "High Value Targets",
+        "queryList": [
+            {
+                "final": true,
+                "query": "MATCH (s)-[r:MemberOf|GetChanges*1..]->(d:Domain) WITH s, d MATCH (s)-[r:MemberOf|GetChangesAll*1..]->(d) WITH s, d MATCH p = (s)-[r:MemberOf|GetChanges|GetChangesAll*1..]->(d) AND a.highvalue = false SET s.highvalue = true, s.highvaluereason = 'DCSync Principal' RETURN p"
+            }
+        ]
+    },
+    {
+        "name": "Set Unconstrained Delegation Principals as High Value Targets",
+        "category": "High Value Targets",
+        "queryList": [
+            {
+                "final": true,
+                "query": "MATCH p = (d:Domain)-[r:Contains*1..]->(uc) WHERE (uc:User OR uc:Computer) AND uc.unconstraineddelegation = true AND a.highvalue = false SET uc.highvalue = true, uc.highvaluereason = 'Unconstrained Delegation Principal' RETURN p"
+            }
+        ]
+    },
+    {
+        "name": "Set Local Admin or Reset Password Principals as High Value Targets",
+        "category": "High Value Targets",
+        "queryList": [
+            {
+                "final": true,
+                "query": "MATCH (a)-[r:AdminTo|ForceChangePassword]->(b) AND a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Local Admin or Reset Password Principal' RETURN a"
+            }
+        ]
+    },
+    {
+        "name": "Set Principals with Privileges on Computers as High Value Targets",
+        "category": "High Value Targets",
+        "queryList": [
+            {
+                "final": true,
+                "query": "MATCH (a)-[r:AllowedToDelegate|ExecuteDCOM|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner]->(n:Computer) AND a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Principal with Privileges on Computers' RETURN a"
+            }
+        ]
+    },
+    {
+        "name": "Set Principals with Privileges on Cert Publishers as High Value Targets",
+        "category": "High Value Targets",
+        "queryList": [
+            {
+                "final": true,
+                "query": "MATCH (a)-[r:GenericAll|GenericWrite|MemberOf|Owns|WriteDacl|WriteOwner]->(g:Group) WHERE g.objectid =~ 'S-1-5-21-.*-517' AND a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Principal with Privileges on the Cert Publisher group' RETURN a"
+            }
+        ]
+    },
+    {
+        "name": "Set Members of High Value Targets Groups as High Value Targets",
+        "category": "High Value Targets",
+        "queryList": [
+            {
+                "final": true,
+                "query": "MATCH (a)-[r:MemberOf*1..]->(g:Group) WHERE a.highvalue = false AND g.highvalue = true SET a.highvalue = true, a.highvaluereason = 'Member of High Value Target Group' RETURN a"
+            }
+        ]
+    },
+    {
+        "name": "Remove Inactive Users and Computers from High Value Targets",
+        "category": "High Value Targets",
+        "queryList": [
+            {
+                "final": true,
+                "query": "MATCH (uc) WHERE uc.highvalue = true AND ((uc:User AND uc.enabled = false) OR (uc:Computer AND ((uc.enabled = false) OR (uc.lastlogon > 0 AND uc.lastlogon < (TIMESTAMP() / 1000 - 15552000)) OR (uc.lastlogontimestamp > 0 AND uc.lastlogontimestamp < (TIMESTAMP() / 1000 - 15552000))))) SET uc.highvalue = false, uc.nothighvaluereason = 'Inactive' RETURN uc"
+            }
+        ]
+    }
 	]
 }

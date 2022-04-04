@@ -1,0 +1,680 @@
+{
+    "queries": [
+        {
+            "name": "Find all Certificate Templates",
+            "category": "Certificates",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH (n:GPO) WHERE n.type = 'Certificate Template' RETURN n"
+              }
+            ]
+          },
+          {
+            "name": "Find enabled Certificate Templates",
+            "category": "Certificates",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH (n:GPO) WHERE n.type = 'Certificate Template' and n.Enabled = true RETURN n"
+              }
+            ]
+          },
+          {
+            "name": "Find Certificate Authorities",
+            "category": "Certificates",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH (n:GPO) WHERE n.type = 'Enrollment Service' RETURN n"
+              }
+            ]
+          },
+          {
+            "name": "Show Enrollment Rights for Certificate Template",
+            "category": "Certificates",
+            "queryList": [
+              {
+                "final": false,
+                "title": "Select a Certificate Template...",
+                "query": "MATCH (n:GPO) WHERE n.type = 'Certificate Template' RETURN n.name"
+              },
+              {
+                "final": true,
+                "query": "MATCH p=(g)-[:Enroll|AutoEnroll]->(n:GPO {name:$result}) WHERE n.type = 'Certificate Template' return p",
+                "allowCollapse": false
+              }
+            ]
+          },
+          {
+            "name": "Show Rights for Certificate Authority",
+            "category": "Certificates",
+            "queryList": [
+              {
+                "final": false,
+                "title": "Select a Certificate Authority...",
+                "query": "MATCH (n:GPO) WHERE n.type = 'Enrollment Service' RETURN n.name"
+              },
+              {
+                "final": true,
+                "query": "MATCH p=(g)-[:ManageCa|ManageCertificates|Auditor|Operator|Read|Enroll]->(n:GPO {name:$result}) return p",
+                "allowCollapse": false
+              }
+            ]
+          },
+          {
+            "name": "Find Misconfigured Certificate Templates (ESC1)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH (n:GPO) WHERE n.type = 'Certificate Template' and n.`Enrollee Supplies Subject` = true and n.`Client Authentication` = true and n.`Enabled` = true  RETURN n"
+              }
+            ]
+          },
+          {
+            "name": "Shortest Paths to Misconfigured Certificate Templates from Owned Principals (ESC1)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH p=allShortestPaths((g {owned:true})-[*1..]->(n:GPO)) WHERE  g<>n and n.type = 'Certificate Template' and n.`Enrollee Supplies Subject` = true and n.`Client Authentication` = true and n.`Enabled` = true return p"
+              }
+            ]
+          },
+          {
+            "name": "Find Misconfigured Certificate Templates (ESC2)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH (n:GPO) WHERE n.type = 'Certificate Template' and n.`Enabled` = true and (n.`Extended Key Usage` = [] or 'Any Purpose' IN n.`Extended Key Usage`)  RETURN n"
+              }
+            ]
+          },
+          {
+            "name": "Shortest Paths to Misconfigured Certificate Templates from Owned Principals (ESC2)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH p=allShortestPaths((g {owned:true})-[*1..]->(n:GPO)) WHERE  g<>n and n.type = 'Certificate Template' and n.`Enabled` = true and (n.`Extended Key Usage` = [] or 'Any Purpose' IN n.`Extended Key Usage`) return p"
+              }
+            ]
+          },
+          {
+            "name": "Find Enrollment Agent Templates (ESC3)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH (n:GPO) WHERE n.type = 'Certificate Template' and n.`Enabled` = true and (n.`Extended Key Usage` = [] or 'Any Purpose' IN n.`Extended Key Usage` or 'Certificate Request Agent' IN n.`Extended Key Usage`)  RETURN n"
+              }
+            ]
+          },
+          {
+            "name": "Find computers with owned Admins",
+            "category": "Admin hunt",
+            "queryList": [{
+                "final": true,
+                "query": "MATCH p=shortestPath((n:User {owned:true})-[r:AdminTo|MemberOf*1..]->(c:Computer)) return p",
+                "allowCollapse": false
+            }]
+        },
+          {
+            "name": "Shortest Paths to Enrollment Agent Templates from Owned Principals (ESC3)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH p=allShortestPaths((g {owned:true})-[*1..]->(n:GPO)) WHERE  g<>n and n.type = 'Certificate Template' and n.`Enabled` = true and (n.`Extended Key Usage` = [] or 'Any Purpose' IN n.`Extended Key Usage` or 'Certificate Request Agent' IN n.`Extended Key Usage`) return p"
+              }
+            ]
+          },
+          {
+            "name": "Shortest Paths to Vulnerable Certificate Template Access Control (ESC4)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH p=shortestPath((g)-[:GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner*1..]->(n:GPO)) WHERE  g<>n and n.type = 'Certificate Template' and n.`Enabled` = true RETURN p"
+              }
+            ]
+          },
+          {
+            "name": "Shortest Paths to Vulnerable Certificate Template Access Control from Owned Principals (ESC4)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH p=allShortestPaths((g {owned:true})-[r*1..]->(n:GPO)) WHERE g<>n and n.type = 'Certificate Template' and n.Enabled = true and NONE(x in relationships(p) WHERE type(x) = 'Enroll' or type(x) = 'AutoEnroll') return p"
+              }
+            ]
+          },
+          {
+            "name": "Find Certificate Authorities with User Specified SAN (ESC6)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH (n:GPO) WHERE n.type = 'Enrollment Service' and n.`User Specified SAN` = 'Enabled' RETURN n"
+              }
+            ]
+          },
+          {
+            "name": "Shortest Paths to Vulnerable Certificate Authority Access Control (ESC7)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH p=shortestPath((g)-[r:GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ManageCa|ManageCertificates*1..]->(n:GPO)) WHERE  g<>n and n.type = 'Enrollment Service' RETURN p"
+              }
+            ]
+          },
+          {
+            "name": "Shortest Paths to Vulnerable Certificate Authority Access Control from Owned Principals (ESC7)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH p=allShortestPaths((g {owned:true})-[*1..]->(n:GPO)) WHERE  g<>n and n.type = 'Enrollment Service' and NONE(x in relationships(p) WHERE type(x) = 'Enroll' or type(x) = 'AutoEnroll') RETURN p"
+              }
+            ]
+          },
+          {
+            "name": "Find Certificate Authorities with HTTP Web Enrollment (ESC8)",
+            "category": "Domain Escalation",
+            "queryList": [
+              {
+                "final": true,
+                "query": "MATCH (n:GPO) WHERE n.type = 'Enrollment Service' and n.`Web Enrollment` = 'Enabled' RETURN n"
+              }
+            ]
+          },
+		{
+            "name": "List all owned users",
+            "category": "Owned",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (m:User) WHERE m.owned=TRUE RETURN m"
+                }
+            ]
+        },
+		{
+            "name": "List all owned computers",
+            "category": "Owned",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (m:Computer) WHERE m.owned=TRUE RETURN m"
+                }
+            ]
+        },
+			{
+            "name": "List all owned groups",
+            "category": "Owned",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (m:Group) WHERE m.owned=TRUE RETURN m"
+                }
+            ]
+        },
+			{
+            "name": "List all High Valued Targets",
+            "category": "High Value Targets",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (m) WHERE m.highvalue=TRUE RETURN m"
+                }
+            ]
+        },
+        {
+          "name": "List all High Valued Owned Targets",
+          "category": "Owned",
+          "queryList": [
+              {
+                  "final": true,
+                  "query": "MATCH (m) WHERE m.highvalue=TRUE AND m.owned = true RETURN m"
+              }
+          ]
+      },
+			{
+            "name": "List the groups of all owned users",
+            "category": "Owned",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (m:User) WHERE m.owned=TRUE WITH m MATCH p=(m)-[:MemberOf*1..]->(n:Group) RETURN p"
+                }
+            ]
+        },
+			{
+            "name": "Find the Shortest path to a high value target from an owned object",
+            "category": "Domain Escalation",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=shortestPath((g {owned:true})-[*1..]->(n {highvalue:true})) WHERE  g<>n return p"
+                }
+            ]
+        },
+        
+		{
+            "name": "Find Kerberoastable Users with a path to DA",
+            "category": "Domain Escalation",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (u:User {hasspn:true}) MATCH (g:Group) WHERE g.objectid ENDS WITH '-512' MATCH p = shortestPath( (u)-[*1..]->(g) ) RETURN p"
+                }
+            ]
+        },
+			{
+            "name": "Find the Shortest path to a unconstrained delegation system from an owned object",
+            "category": "Kerberos",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (n) MATCH p=shortestPath((n)-[*1..]->(m:Computer {unconstraineddelegation: true})) WHERE NOT n=m AND n.owned = true RETURN p"
+                }
+            ]
+        },
+        {
+            "name": "Find machines Domain Users can RDP into",
+            "category": "RDP / Session",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "match p=(g:Group)-[:CanRDP]->(c:Computer) where g.objectid ENDS WITH '-513' return p"
+                }
+            ]
+        },
+        {
+            "name": "Find what groups can RDP",
+            "category": "RDP / Session",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(m:Group)-[r:CanRDP]->(n:Computer) RETURN p"
+                }
+            ]
+        },		
+        {
+            "name": "Find groups that can reset passwords (Warning: Heavy)",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(m:Group)-[r:ForceChangePassword]->(n:User) RETURN p"
+                }
+            ]
+        },
+        {
+          "name": "Find groups with adminCount=True but not in High Value target",
+          "category":"Interesting permissions",
+          "queryList": [
+            {
+              "final": true,
+              "query": "MATCH p = (g:Group {admincount: True}) WHERE NOT EXISTS(g.highvalue) OR g.highvalue = False RETURN g"
+            }
+          ]
+        },
+        {
+          "name": "Find groups that have local admin rights but admincount=0",
+          "category": "Admin hunt",
+          "queryList": [
+              {
+                  "final": true,
+                  "query": "MATCH p=(n:Group)-[:AdminTo*1..]->(m:Computer) WHERE NOT n.admincount RETURN p"
+              }
+          ]
+        },
+        
+        {
+            "name": "Find groups that have local admin rights (Warning: Heavy)",
+            "category": "Admin hunt",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(m:Group)-[r:AdminTo]->(n:Computer) RETURN p"
+                }
+            ]
+        },
+        {
+            "name": "Find all users that have local admin rights",
+            "category": "Admin hunt",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(m:User)-[r:AdminTo]->(n:Computer) RETURN p"
+                }
+            ]
+        },
+        {
+          "name": "Find all computers that have local admin rights",
+          "category": "Admin hunt",
+          "queryList": [
+              {
+                  "final": true,
+                  "query": "MATCH p=(m:Computer)-[r:AdminTo]->(n:Computer) RETURN p"
+              }
+          ]
+        },
+        {
+            "name": "Find all active Domain Admin sessions",
+            "category": "RDP / Session",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (n:User)-[:MemberOf]->(g:Group) WHERE g.objectid ENDS WITH '-512' MATCH p = (c:Computer)-[:HasSession]->(n) return p"
+                }
+            ]
+        },
+		    {
+            "name": "Find all computers with Unconstrained Delegation",
+            "category": "Kerberos",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (c:Computer {unconstraineddelegation:true}) return c"
+                }
+            ]
+        },
+		{
+            "name": "Find all computers with unsupported operating systems",
+            "category": "Other",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (H:Computer) WHERE H.operatingsystem = '.*(2000|2003|2008|xp|vista|7|me).*' RETURN H"
+                }
+            ]
+        },
+		{
+            "name": "Find users that logged in within the last 90 days",
+            "category": "Other",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (u:User) WHERE u.lastlogon < (datetime().epochseconds - (90 * 86400)) and NOT u.lastlogon IN [-1.0, 0.0] RETURN u"
+                }
+            ]
+        },
+		{
+            "name": "Find users with passwords last set within the last 90 days",
+            "category": "Other",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (u:User) WHERE u.pwdlastset < (datetime().epochseconds - (90 * 86400)) and NOT u.pwdlastset IN [-1.0, 0.0] RETURN u"
+                }
+            ]
+        },
+        {
+            "name": "Find users that have not logged in within the last 90 days",
+            "category": "Other",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (u:User) WHERE u.lastlogon > (datetime().epochseconds - (90 * 86400)) and NOT u.lastlogon IN [-1.0, 0.0] RETURN u"
+                }
+            ]
+        },
+		{
+            "name": "Find users with passwords last set over 90 days",
+            "category": "Other",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (u:User) WHERE u.pwdlastset > (datetime().epochseconds - (90 * 86400)) and NOT u.pwdlastset IN [-1.0, 0.0] RETURN u"
+                }
+            ]
+        },		
+		{
+            "name": "Find constrained delegation",
+            "category": "Kerberos",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(u:User)-[:AllowedToDelegate]->(c:Computer) RETURN p"
+                }
+            ]
+        },	
+		{
+            "name": "Find computers that allow unconstrained delegation that AREN’T domain controllers.",
+            "category": "Kerberos",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (c1:Computer)-[:MemberOf*1..]->(g:Group) WHERE g.objectid ENDS WITH '-516' WITH COLLECT(c1.name) AS domainControllers MATCH (c2:Computer {unconstraineddelegation:true}) WHERE NOT c2.name IN domainControllers RETURN c2"
+                }
+            ]
+        },							
+		{
+            "name": "View all GPOs",
+            "category": "Other",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "Match (n:GPO) RETURN n"
+                }
+            ]
+        },		
+		{
+            "name": "View all groups that contain the word 'admin'",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "Match (n:Group) WHERE n.name CONTAINS 'ADMIN' RETURN n"
+                }
+            ]
+        },								
+		{
+            "name": "Show all high value target's groups",
+            "category": "Other",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(n:User)-[r:MemberOf*1..]->(m:Group {highvalue:true}) RETURN p"
+                }
+            ]
+        },									
+		{
+            "name": "Find computers with constrained delegation permissions and the corresponding targets where they allowed to delegate",
+            "category": "Kerberos",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (c:Computer) WHERE c.allowedtodelegate IS NOT NULL RETURN c"
+                }
+            ]
+        },		
+		{
+            "name": "Find if any domain user has interesting permissions against a GPO (Warning: Heavy)",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(u:User)-[r:AllExtendedRights|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|GpLink*1..]->(g:GPO) RETURN p"
+                }
+            ]
+        },
+		{
+            "name": "Find if unprivileged users have rights to add members into groups",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (n:User {admincount:False}) MATCH p=allShortestPaths((n)-[r:AddMember*1..]->(m:Group)) RETURN p"
+                }
+            ]
+        },	
+        {
+            "name": "Find users that have never logged on and account is still active",
+            "category": "Other",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (n:User) WHERE n.lastlogontimestamp=-1.0 AND n.enabled=TRUE RETURN n "
+                }
+            ]
+        },	
+        {
+            "name": "Find an object from domain 'A' that can do anything to a foreign object",
+            "category": "Interesting permissions",
+			"requireNodeSelect": true,
+            "queryList": [
+                {
+                    "final": false,
+                    "title": "Select source domain...",
+                    "query": "MATCH (n:Domain) RETURN n.name ORDER BY n.name"
+                },		
+                {
+                    "final": true,                
+                    "query": "MATCH p=(n {domain:{result}})-[r]->(d) WHERE NOT d.domain=n.domain RETURN p",					
+					"startNode": "{}",
+                    "allowCollapse": false
+                }
+            ]
+        },
+        {
+            "name": "Find All edges any owned user has on a computer",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=shortestPath((m:User)-[r*]->(b:Computer)) WHERE m.owned RETURN p"
+                }
+            ]
+        },
+        {
+          "name": "Find Server 2000",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer) WHERE H.operatingsystem =~ '(?i).*(2000).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Server 2000 with session",
+          "category": "OS Finder",                        
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer)-[:HasSession]->(y) WHERE H.operatingsystem =~ '(?i).*(2000).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Server 2003",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer) WHERE H.operatingsystem =~ '(?i).*(2003).*' RETURN H"
+          }]
+      },
+        {
+          "name": "Find Server 2008 with session",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer)-[:HasSession]->(y) WHERE H.operatingsystem =~ '(?i).*(2008).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Windows XP",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer) WHERE H.operatingsystem =~ '(?i).*(xp).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Windows XP with session",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer)-[:HasSession]->(y) WHERE H.operatingsystem =~ '(?i).*(xp).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Windows 7",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer) WHERE H.operatingsystem =~ '(?i).*(7).*' RETURN H"
+          }]
+      },
+
+
+      {
+          "name": "Find Windows 7 session",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer)-[:HasSession]->(y) WHERE H.operatingsystem =~ '(?i).*(7).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Server 2012",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer) WHERE H.operatingsystem =~ '(?i).*(2012).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Server 2012 with session",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer)-[:HasSession]->(y) WHERE H.operatingsystem =~ '(?i).*(2012).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Server 2016",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer) WHERE H.operatingsystem =~ '(?i).*(2016).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Server 2016 with session",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer)-[:HasSession]->(y) WHERE H.operatingsystem =~ '(?i).*(2016).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Server 2019",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer) WHERE H.operatingsystem =~ '(?i).*(2019).*' RETURN H"
+          }]
+      },
+
+      {
+          "name": "Find Server 2019 with session",
+          "category": "OS Finder",
+          "queryList": [{
+              "final": true,
+              "query": "MATCH (H:Computer)-[:HasSession]->(y) WHERE H.operatingsystem =~ '(?i).*(2019).*' RETURN H"
+          }]
+      }
+	]
+}

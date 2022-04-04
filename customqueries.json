@@ -272,6 +272,16 @@
                 }
             ]
         },
+        {
+            "name": "Find ASREPRoastable Users with a path to DA",
+            "category": "Domain Escalation",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (u:User {dontreqpreauth: true}) MATCH (g:Group) WHERE g.objectid ENDS WITH '-512' MATCH p = shortestPath( (u)-[*1..]->(g) ) RETURN p"
+                }
+            ]
+        },
 			{
             "name": "Find the Shortest path to a unconstrained delegation system from an owned object",
             "category": "Kerberos",

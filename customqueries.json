@@ -323,6 +323,26 @@
             ]
         },
         {
+            "name": "Find computer account with a SPN containing MSSQL",
+            "category":"MSSQL",
+            "queryList": [
+                {
+                    "final":true,
+                    "query":"MATCH (c:Computer) WHERE ANY (x IN c.serviceprincipalnames WHERE toUpper(x) CONTAINS 'MSSQL') RETURN c"
+                }
+            ]
+        },
+        {
+            "name": "Find accounts that are MSSQL Admins on computers",
+            "category":"MSSQL",
+            "queryList": [
+                {
+                    "final":true,
+                    "query":"MATCH p=(u:User)-[r:SQLAdmin]->(c:Compiter)) RETURN p"
+                }
+            ]
+        },
+        {
           "name": "Find groups with adminCount=True but not in High Value target",
           "category":"Interesting permissions",
           "queryList": [

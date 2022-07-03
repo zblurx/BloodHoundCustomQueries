@@ -64,7 +64,7 @@
           },
           {
             "name": "Find Misconfigured Certificate Templates (ESC1)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -74,7 +74,7 @@
           },
           {
             "name": "Shortest Paths to Misconfigured Certificate Templates from Owned Principals (ESC1)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -84,7 +84,7 @@
           },
           {
             "name": "Find Misconfigured Certificate Templates (ESC2)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -94,7 +94,7 @@
           },
           {
             "name": "Shortest Paths to Misconfigured Certificate Templates from Owned Principals (ESC2)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -104,7 +104,7 @@
           },
           {
             "name": "Find Enrollment Agent Templates (ESC3)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -123,7 +123,7 @@
         },
           {
             "name": "Shortest Paths to Enrollment Agent Templates from Owned Principals (ESC3)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -133,7 +133,7 @@
           },
           {
             "name": "Shortest Paths to Vulnerable Certificate Template Access Control (ESC4)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -143,7 +143,7 @@
           },
           {
             "name": "Shortest Paths to Vulnerable Certificate Template Access Control from Owned Principals (ESC4)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -153,7 +153,7 @@
           },
           {
             "name": "Find Certificate Authorities with User Specified SAN (ESC6)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -163,7 +163,7 @@
           },
           {
             "name": "Shortest Paths to Vulnerable Certificate Authority Access Control (ESC7)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -173,7 +173,7 @@
           },
           {
             "name": "Shortest Paths to Vulnerable Certificate Authority Access Control from Owned Principals (ESC7)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -183,7 +183,7 @@
           },
           {
             "name": "Find Certificate Authorities with HTTP Web Enrollment (ESC8)",
-            "category": "Domain Escalation",
+            "category": "Certificates",
             "queryList": [
               {
                 "final": true,
@@ -722,7 +722,7 @@
         "queryList": [
             {
                 "final": true,
-                "query": "MATCH (s)-[r:MemberOf|GetChanges*1..]->(d:Domain) WITH s, d MATCH (s)-[r:MemberOf|GetChangesAll*1..]->(d) WITH s, d MATCH p = (s)-[r:MemberOf|GetChanges|GetChangesAll*1..]->(d) AND a.highvalue = false SET s.highvalue = true, s.highvaluereason = 'DCSync Principal' RETURN p"
+                "query": "MATCH (s)-[r:MemberOf|GetChanges*1..]->(d:Domain) WITH s, d MATCH (s)-[r:MemberOf|GetChangesAll*1..]->(d) WITH s, d MATCH p = (s)-[r:MemberOf|GetChanges|GetChangesAll*1..]->(d) WHERE s.highvalue = false SET s.highvalue = true, s.highvaluereason = 'DCSync Principal' RETURN s"
             }
         ]
     },
@@ -732,7 +732,7 @@
         "queryList": [
             {
                 "final": true,
-                "query": "MATCH p = (d:Domain)-[r:Contains*1..]->(uc) WHERE (uc:User OR uc:Computer) AND uc.unconstraineddelegation = true AND a.highvalue = false SET uc.highvalue = true, uc.highvaluereason = 'Unconstrained Delegation Principal' RETURN p"
+                "query": "MATCH p = (d:Domain)-[r:Contains*1..]->(uc) WHERE (uc:User OR uc:Computer) AND uc.unconstraineddelegation = true AND uc.highvalue = false SET uc.highvalue = true, uc.highvaluereason = 'Unconstrained Delegation Principal' RETURN p"
             }
         ]
     },
@@ -742,7 +742,7 @@
         "queryList": [
             {
                 "final": true,
-                "query": "MATCH (a)-[r:AdminTo|ForceChangePassword]->(b) AND a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Local Admin or Reset Password Principal' RETURN a"
+                "query": "MATCH (a)-[r:AdminTo|ForceChangePassword]->(b) WHERE a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Local Admin or Reset Password Principal' RETURN a"
             }
         ]
     },
@@ -752,7 +752,7 @@
         "queryList": [
             {
                 "final": true,
-                "query": "MATCH (a)-[r:AllowedToDelegate|ExecuteDCOM|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner]->(n:Computer) AND a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Principal with Privileges on Computers' RETURN a"
+                "query": "MATCH (a)-[r:AllowedToDelegate|ExecuteDCOM|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner]->(n:Computer) WHERE a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Principal with Privileges on Computers' RETURN a"
             }
         ]
     },

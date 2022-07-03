@@ -1,6 +1,36 @@
 {
     "queries": [
         {
+            "name": "List all owned computers",
+            "category": "Owned",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (m:Computer) WHERE m.owned=TRUE RETURN m"
+                }
+            ]
+        },
+        
+        {
+            "name": "List all High Valued Targets",
+            "category": "High Value Targets",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (m) WHERE m.highvalue=TRUE RETURN m"
+                }
+            ]
+        },
+        {
+            "name": "Find computers with owned Admins",
+            "category": "Admin hunt",
+            "queryList": [{
+                "final": true,
+                "query": "MATCH p=shortestPath((n:User {owned:true})-[r:AdminTo|MemberOf*1..]->(c:Computer)) return p",
+                "allowCollapse": false
+            }]
+        },
+        {
             "name": "Find all Certificate Templates",
             "category": "Certificates",
             "queryList": [
@@ -112,15 +142,7 @@
               }
             ]
           },
-          {
-            "name": "Find computers with owned Admins",
-            "category": "Admin hunt",
-            "queryList": [{
-                "final": true,
-                "query": "MATCH p=shortestPath((n:User {owned:true})-[r:AdminTo|MemberOf*1..]->(c:Computer)) return p",
-                "allowCollapse": false
-            }]
-        },
+          
           {
             "name": "Shortest Paths to Enrollment Agent Templates from Owned Principals (ESC3)",
             "category": "Certificates",
@@ -201,16 +223,7 @@
                 }
             ]
         },
-		{
-            "name": "List all owned computers",
-            "category": "Owned",
-            "queryList": [
-                {
-                    "final": true,
-                    "query": "MATCH (m:Computer) WHERE m.owned=TRUE RETURN m"
-                }
-            ]
-        },
+		
 			{
             "name": "List all owned groups",
             "category": "Owned",
@@ -221,16 +234,7 @@
                 }
             ]
         },
-			{
-            "name": "List all High Valued Targets",
-            "category": "High Value Targets",
-            "queryList": [
-                {
-                    "final": true,
-                    "query": "MATCH (m) WHERE m.highvalue=TRUE RETURN m"
-                }
-            ]
-        },
+			
         {
           "name": "List all High Valued Owned Targets",
           "category": "Owned",
@@ -253,7 +257,7 @@
         },
 			{
             "name": "Find the Shortest path to a high value target from an owned object",
-            "category": "Domain Escalation",
+            "category": "High Value Targets",
             "queryList": [
                 {
                     "final": true,
@@ -264,7 +268,7 @@
         
 		{
             "name": "Find Kerberoastable Users with a path to DA",
-            "category": "Domain Escalation",
+            "category": "Kerberos",
             "queryList": [
                 {
                     "final": true,
@@ -273,8 +277,18 @@
             ]
         },
         {
+            "name": "Find objects with SPN and either allowedtodelegate, admincount or unconstrained delegation",
+            "category": "Kerberos",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (c {hasspn: True}) WHERE c.allowedtodeledate=true OR c.unconstraineddelegation=true OR c.admincount RETURN c"
+                }
+            ]
+        },
+        {
             "name": "Find ASREPRoastable Users with a path to DA",
-            "category": "Domain Escalation",
+            "category": "Kerberos",
             "queryList": [
                 {
                     "final": true,
@@ -323,6 +337,16 @@
             ]
         },
         {
+            "name": "Top 100 with most Outbound Controlled Object",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(u)-[r1]->(n) WHERE r1.isacl=true WITH u as u, COUNT(DISTINCT(n)) as controlled WHERE u.name IS NOT NULL  RETURN u LIMIT 100"
+                }
+            ]
+        },
+        {
             "name": "Find computer account with a SPN containing MSSQL",
             "category":"MSSQL",
             "queryList": [
@@ -338,7 +362,7 @@
             "queryList": [
                 {
                     "final":true,
-                    "query":"MATCH p=(u:User)-[r:SQLAdmin]->(c:Compiter)) RETURN p"
+                    "query":"MATCH p=(u:User)-[r:SQLAdmin]->(c:Compiter) RETURN p"
                 }
             ]
         },
@@ -374,12 +398,22 @@
             ]
         },
         {
-            "name": "Find all users that have local admin rights",
+            "name": "Find all users that have directly local admin rights",
             "category": "Admin hunt",
             "queryList": [
                 {
                     "final": true,
                     "query": "MATCH p=(m:User)-[r:AdminTo]->(n:Computer) RETURN p"
+                }
+            ]
+        },
+        {
+            "name": "Find all users that have directly or indrectly local admin rights (Warning: Heavy)",
+            "category": "Admin hunt",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p = (u:User)-[r:AdminTo|MemberOf*1..]->(c:Computer) RETURN p"
                 }
             ]
         },
@@ -512,7 +546,67 @@
                     "query": "Match (n:Group) WHERE n.name CONTAINS 'ADMIN' RETURN n"
                 }
             ]
-        },								
+        },
+        {
+            "name": "Find users with PasswordNeverExpires",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (u:User {pwdneverexpires: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u"
+                }
+            ]
+        },
+        {
+            "name": "Find nodes with juicy keyword in name or description",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "UNWIND [\"admin\", \"amministratore\", \"contrase\", \"empfidlich\", \"geheim\", \"hasło\", \"important\", \"azure\", \"MSOL\", \"Kennwort\", \"parol\", \"parola\", \"pass\", \"passe\", \"secret\", \"secreto\", \"segreto\", \"sekret\", \"sensibil\", \"sensibile\", \"sensible\", \"sensitive\", \"wrażliw\"] AS word MATCH (n) WHERE (toLower(n.name) CONTAINS toLower(word)) OR (toLower(n.description) CONTAINS toLower(word)) RETURN n"
+                }
+            ]
+        },
+        {
+            "name": "Find nodes that contain UNC paths to SMB share in description",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH (n) WHERE n.description CONTAINS '\\\\' RETURN n"
+                }
+            ]
+        },
+        {
+            "name": "Find all other rights Domain Users should not have",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(m:Group)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(n:Computer) WHERE m.name STARTS WITH 'DOMAIN USERS' RETURN p"
+                }
+            ]
+        },
+        {
+            "name": "Find user without adminCount that have interesting ACL",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(u:User)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(n:Computer) WHERE u.admincount=false RETURN p"
+                }
+            ]
+        },
+        {
+            "name": "Find computer without adminCount that have interesting ACL",
+            "category": "Interesting permissions",
+            "queryList": [
+                {
+                    "final": true,
+                    "query": "MATCH p=(c:Computer)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(n:Computer) WHERE c.admincount=false RETURN p"
+                }
+            ]
+        },
 		{
             "name": "Show all high value target's groups",
             "category": "Other",
@@ -575,7 +669,7 @@
                 },		
                 {
                     "final": true,                
-                    "query": "MATCH p=(n {domain:{result}})-[r]->(d) WHERE NOT d.domain=n.domain RETURN p",					
+                    "query": "MATCH p=(n {domain:$result})-[r]->(d) WHERE NOT d.domain=n.domain RETURN p",					
 					"startNode": "{}",
                     "allowCollapse": false
                 }
@@ -763,6 +857,16 @@
             {
                 "final": true,
                 "query": "MATCH (a)-[r:GenericAll|GenericWrite|MemberOf|Owns|WriteDacl|WriteOwner]->(g:Group) WHERE g.objectid =~ 'S-1-5-21-.*-517' AND a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Principal with Privileges on the Cert Publisher group' RETURN a"
+            }
+        ]
+    },
+    {
+        "name": "Set Principals with Privileges on High Value Targets as High Value Targets",
+        "category": "High Value Targets",
+        "queryList": [
+            {
+                "final": true,
+                "query": "MATCH (a)-[r:GenericAll|GenericWrite|MemberOf|Owns|WriteDacl|WriteOwner]->(b) WHERE b.highvalue=true AND a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Principal with Privileges on the Cert Publisher group' RETURN a"
             }
         ]
     },

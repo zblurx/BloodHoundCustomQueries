@@ -31,6 +31,14 @@
             }]
         },
         {
+            "name": "Owned users with permissions against GPOs",
+            "category": "Admin Hunter",
+            "queryList": [{
+                "final": true,
+                "query": "MATCH p=(u:User {owned:true})-[r:AllExtendedRights|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|GpLink*1..]->(g:GPO) RETURN p"
+            }]
+        },
+        {
             "name": "Find all Certificate Templates",
             "category": "Certificates",
             "queryList": [
@@ -325,7 +333,15 @@
                     "query": "MATCH p=(m:Group)-[r:CanRDP]->(n:Computer) RETURN p"
                 }
             ]
-        },		
+        },
+        {
+            "name": "Find if any domain user has interesting permissions against a GPO (Warning: Heavy)",
+            "category": "Interesting permissions",
+            "queryList": [{
+                "final": true,
+                "query": "MATCH p=(u:User)-[r:AllExtendedRights|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|GpLink*1..]->(g:GPO) RETURN p"
+            }]
+        },
         {
             "name": "Find groups that can reset passwords (Warning: Heavy)",
             "category": "Interesting permissions",

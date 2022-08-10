@@ -31,11 +31,11 @@
             }]
         },
         {
-            "name": "Owned users with permissions against GPOs",
+            "name": "Shortest path from owned users with permissions against GPOs",
             "category": "Admin Hunter",
             "queryList": [{
                 "final": true,
-                "query": "MATCH p=(u:User {owned:true})-[r:AllExtendedRights|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|GpLink*1..]->(g:GPO) RETURN p"
+                "query": "MATCH p=shortestPath((u:User {owned:true})-[r:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(g:GPO)) RETURN p"
             }]
         },
         {

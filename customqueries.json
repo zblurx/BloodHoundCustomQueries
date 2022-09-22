@@ -250,7 +250,7 @@
                 "query": "MATCH p=allShortestPaths((g {owned:true})-[r*1..]->(n:GPO)) WHERE n.type = 'Certificate Template' and g<>n and 'NoSecurityExtension' in n.`Enrollment Flag` and n.`Enabled` = true and NONE(rel in r WHERE type(rel) in ['EnabledBy','Read','ManageCa','ManageCertificates']) return p"
               }
             ]
-          }
+          },
 		{
             "name": "List all owned users",
             "category": "Owned",

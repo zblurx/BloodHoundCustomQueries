@@ -15,6 +15,14 @@ git clone https://github.com/zblurx/BloodHoundCustomQueries
 cp BloodHoundCustomQueries/customqueries.json ~/.config/bloodhound/customqueries.json
 ```
 
+or 
+
+```text
+git clone https://github.com/zblurx/BloodHoundCustomQueries
+cd BloodHoundCustomQueries
+make
+```
+
 ## Queries
 
 Generated with jq-fu:
@@ -40,6 +48,13 @@ MATCH (m) WHERE m.highvalue=TRUE RETURN m
 
  ```text
 MATCH p=shortestPath((n:User {owned:true})-[r:AdminTo|MemberOf*1..]->(c:Computer)) return p
+```
+
+
+### Shortest path from owned users with permissions against GPOs
+
+ ```text
+MATCH p=shortestPath((u:User {owned:true})-[r:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(g:GPO)) RETURN p
 ```
 
 
@@ -176,6 +191,27 @@ MATCH (n:GPO) WHERE n.type = 'Enrollment Service' and n.`Web Enrollment` = 'Enab
 ```
 
 
+### Find Unsecured Certificate Templates (ESC9)
+
+ ```text
+MATCH (n:GPO) WHERE n.type = 'Certificate Template' and n.`Enrollee Supplies Subject` = true and n.`Client Authentication` = true and n.`Enabled` = true  RETURN n
+```
+
+
+### Find Unsecured Certificate Templates (ESC9)
+
+ ```text
+MATCH (n:GPO) WHERE n.type = 'Certificate Template' and 'NoSecurityExtension' in n.`Enrollment Flag` and n.`Enabled` = true  RETURN n
+```
+
+
+### Shortest Paths to Unsecured Certificate Templates from Owned Principals (ESC9)
+
+ ```text
+MATCH p=allShortestPaths((g {owned:true})-[r*1..]->(n:GPO)) WHERE n.type = 'Certificate Template' and g<>n and 'NoSecurityExtension' in n.`Enrollment Flag` and n.`Enabled` = true and NONE(rel in r WHERE type(rel) in ['EnabledBy','Read','ManageCa','ManageCertificates']) return p
+```
+
+
 ### List all owned users
 
  ```text
@@ -250,6 +286,13 @@ match p=(g:Group)-[:CanRDP]->(c:Computer) where g.objectid ENDS WITH '-513' retu
 
  ```text
 MATCH p=(m:Group)-[r:CanRDP]->(n:Computer) RETURN p
+```
+
+
+### Find if any domain user has interesting permissions against a GPO (Warning: Heavy)
+
+ ```text
+MATCH p=(u:User)-[r:AllExtendedRights|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|GpLink*1..]->(g:GPO) RETURN p
 ```
 
 

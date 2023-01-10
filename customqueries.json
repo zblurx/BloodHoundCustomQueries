@@ -745,7 +745,7 @@
             "queryList": [
                 {
                     "final": true,
-                    "query": "MATCH p=(m:Group)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(n:Computer) WHERE m.name STARTS WITH 'DOMAIN USERS' RETURN p"
+                    "query": "MATCH p=(m:Group)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(n) WHERE m.objectid ENDS WITH '513' RETURN p"
                 }
             ]
         },
@@ -755,7 +755,7 @@
             "queryList": [
                 {
                     "final": true,
-                    "query": "MATCH p=(u:User)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(n:Computer) WHERE u.admincount=false RETURN p"
+                    "query": "MATCH p=(u:User)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(n) WHERE u.admincount=false AND NOT u.name STARTS WITH 'MSOL' RETURN p"
                 }
             ]
         },
@@ -765,7 +765,7 @@
             "queryList": [
                 {
                     "final": true,
-                    "query": "MATCH p=(c:Computer)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(n:Computer) WHERE c.admincount=false RETURN p"
+                    "query": "MATCH p=(c:Computer)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(n) WHERE c.admincount=false RETURN p"
                 }
             ]
         },
